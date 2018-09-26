@@ -6,7 +6,9 @@ require 'pry'
 require 'simplecov'
 require 'simplecov-lcov'
 SimpleCov::Formatter::LcovFormatter.config.report_with_single_file = true
-SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
+  [SimpleCov::Formatter::LcovFormatter, SimpleCov::Formatter::HTMLFormatter]
+)
 SimpleCov.start do
   add_filter(/^\/spec\//)
 end
@@ -28,6 +30,10 @@ RSpec::Matchers.define :undercover_options do |opts_hash|
       expect(actual.send(opt_key)).to match(opt_value)
     end
   end
+end
+
+def stub_stdout
+  allow(STDOUT).to receive(:puts)
 end
 
 # Matchers compatible with Imagen::Node::Base#find_all

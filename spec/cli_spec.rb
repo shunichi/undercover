@@ -5,9 +5,11 @@ require 'spec_helper'
 describe Undercover::CLI do
   it 'creates an Undercover::Report with defaults' do
     stub_build
+    stub_stdout
     expect(Undercover::Report)
       .to receive(:new)
       .with(
+        instance_of(Undercover::Changeset),
         undercover_options(
           lcov: a_string_ending_with('coverage/lcov/undercover.lcov'),
           path: '.',
@@ -21,9 +23,11 @@ describe Undercover::CLI do
 
   it 'creates an Undercover::Report with options' do
     stub_build
+    stub_stdout
     expect(Undercover::Report)
       .to receive(:new)
       .with(
+        instance_of(Undercover::Changeset),
         undercover_options(
           lcov: 'spec/fixtures/sample.lcov',
           path: 'spec/fixtures',
@@ -37,9 +41,11 @@ describe Undercover::CLI do
 
   it 'accepts --compare' do
     stub_build
+    stub_stdout
     expect(Undercover::Report)
       .to receive(:new)
       .with(
+        instance_of(Undercover::Changeset),
         undercover_options(
           lcov: a_string_ending_with('coverage/lcov/undercover.lcov'),
           path: '.',
@@ -52,6 +58,7 @@ describe Undercover::CLI do
   end
 
   it 'returns 0 exit code on success' do
+    stub_stdout
     mock_report = instance_double(
       Undercover::Report, validate: nil, changeset: nil
     )
@@ -62,6 +69,7 @@ describe Undercover::CLI do
   end
 
   it 'returns 1 exit code on warnings' do
+    stub_stdout
     mock_report = instance_double(
       Undercover::Report, validate: nil, changeset: nil
     )
@@ -93,6 +101,16 @@ describe Undercover::CLI do
     expect do
       expect(subject.run([])).to eq(0)
     end.to output(expected_output).to_stdout
+  end
+
+  it 'sets ruby syntax version from options' do
+    v_default = Imagen.parser_version
+    stub_build
+
+    subject.run('-r ruby19')
+    expect(Imagen.parser_version).to eq('ruby19')
+
+    Imagen.parser_version = v_default
   end
 
   # rubocop:disable Metrics/AbcSize

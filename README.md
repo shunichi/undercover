@@ -1,8 +1,21 @@
 # undercover 👮‍♂️
 
-**RuboCop for code coverage**
+**Like RuboCop but for code coverage**
 
 **Inspects files in a git diff and warns on methods, classes and blocks which need test coverage.** Use it locally or as part of an automated build to shorten your code coverage feedback loop!
+
+## Why?
+
+I wanted to create a tool to help others and myself ensure that tests are written for all the recent code changes. This should be useful for any ruby project, but especially those large or legacy codebases that lack testing (and we can't or don't want to invest in full test coverage).
+
+The goal was to provide automated warnings, that are:
+- relevant, so scoped to the actual code changes
+- timely, so we don't end up writing tests long after the implementation
+- actionable, so we can fix them before the code is committed or reaches production
+
+For more background, please [read the blog post](https://medium.com/futuredev/stop-shipping-untested-ruby-code-with-undercover-1edc963be4a6).
+
+## How?
 
 Technically, `undercover` combines data from git, coverage reports and code structure graphs.
 
@@ -38,7 +51,7 @@ Or install it yourself as:
 
 ## Setting up required LCOV reporting
 
-To make your specs compatible with `undercover` by providing an LCOV report, please add `simplecov` and `simplecov-lcov` to your test setup. Example for rspec:
+To make your specs or tests compatible with `undercover` by providing an LCOV report, please add `simplecov` and `simplecov-lcov` to your test setup.
 
 ```ruby
 # Gemfile
@@ -53,13 +66,17 @@ require 'simplecov-lcov'
 SimpleCov::Formatter::LcovFormatter.config.report_with_single_file = true
 SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter
 SimpleCov.start do
-  add_filter(/^\/spec\//)
+  add_filter(/^\/spec\//) # For RSpec
+  
+  add_filter(/^\/test\//) # For Minitest
 end
 
 require 'undercover'
 
 # ...
 ```
+
+Then run your test suite once through to generate the initial `coverage/lcov/*.lcov` file before you can run the `undercover` command
 
 ## Usage
 

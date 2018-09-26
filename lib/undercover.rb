@@ -27,18 +27,20 @@ module Undercover
 
     # Initializes a new Undercover::Report
     #
-    # @param options [Undercover::Options]
-    def initialize(opts)
+    # @param changeset [Undercover::Changeset]
+    # @param opts [Undercover::Options]
+    def initialize(changeset, opts)
       @lcov = LcovParser.parse(File.open(opts.lcov))
       @code_dir = opts.path
-      git_dir = File.join(opts.path, opts.git_dir)
-      @changeset = Changeset.new(git_dir, opts.compare).update
-      @results = Hash.new { |hsh, key| hsh[key] = [] }
+      @changeset = changeset.update
+      @results = {}
     end
 
     def build
       each_result_arg do |filename, coverage, imagen_node|
-        results[filename.gsub(/^\.\//, '')] << Result.new(
+        key = filename.gsub(/^\.\//, '')
+        results[key] ||= []
+        results[key] << Result.new(
           imagen_node, coverage, filename
         )
       end
@@ -49,14 +51,20 @@ module Undercover
     # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
     def build_warnings
       flagged_results = Set.new
+
       changeset.each_changed_line do |filepath, line_no|
         dist_from_line_no = lambda do |res|
           return BigDecimal::INFINITY if line_no < res.first_line
+
+          res_lines = res.first_line..res.last_line
+          return BigDecimal::INFINITY unless res_lines.cover?(line_no)
+
           line_no - res.first_line
         end
         dist_from_line_no_sorter = lambda do |res1, res2|
           dist_from_line_no[res1] <=> dist_from_line_no[res2]
         end
+        next unless results[filepath]
 
         res = results[filepath].min(&dist_from_line_no_sorter)
         flagged_results << res if res&.uncovered?(line_no)
@@ -81,12 +89,13 @@ module Undercover
     # so is this still good idea? (Rakefile, .gemspec etc)
     def each_result_arg
       match_all = ->(_) { true }
-      lcov.source_files.each do |filename, coverage|
-        path = File.join(code_dir, filename)
+      lcov.source_files.each do |relative_filename, coverage|
+        path = File.join(code_dir, relative_filename)
         root_ast = Imagen::Node::Root.new.build_from_file(path)
         next if root_ast.children.empty?
+
         root_ast.children[0].find_all(match_all).each do |node|
-          yield(path, coverage, node)
+          yield(relative_filename, coverage, node)
         end
       end
     end
