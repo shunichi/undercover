@@ -27,6 +27,7 @@ module Undercover
       end
 
       warnings = report.build_warnings
+      puts Undercover::ChangesetFormatter.new(report.changeset)
       puts Undercover::Formatter.new(warnings)
       warnings.any? ? 1 : 0
     end

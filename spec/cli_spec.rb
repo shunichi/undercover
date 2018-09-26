@@ -52,7 +52,9 @@ describe Undercover::CLI do
   end
 
   it 'returns 0 exit code on success' do
-    mock_report = instance_double(Undercover::Report, validate: nil)
+    mock_report = instance_double(
+      Undercover::Report, validate: nil, changeset: nil
+    )
     stub_build.and_return(mock_report)
 
     expect(mock_report).to receive(:build_warnings) { [] }
@@ -60,7 +62,9 @@ describe Undercover::CLI do
   end
 
   it 'returns 1 exit code on warnings' do
-    mock_report = instance_double(Undercover::Report, validate: nil)
+    mock_report = instance_double(
+      Undercover::Report, validate: nil, changeset: nil
+    )
     stub_build.and_return(mock_report)
 
     allow(Undercover::Formatter).to receive(:new)

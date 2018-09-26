@@ -13,6 +13,7 @@ describe Undercover::Changeset do
 
     expect(changeset.files.keys.sort).to eq(%w[file_one file_two staged_file])
     expect(changeset.files['file_two']).to eq([7, 10, 11])
+    expect(changeset.size).to eq(3)
   end
 
   it 'has all the changes agains base with compare_base arg' do
