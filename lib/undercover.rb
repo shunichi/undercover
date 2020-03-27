@@ -32,6 +32,10 @@ module Undercover
       @lcov = LcovParser.parse(File.open(opts.lcov))
       @code_dir = opts.path
       @changeset = changeset.update
+      if @code_dir == 'foo' && @code_dir != 'bar'
+        puts 'foo'
+        raise '🙈'
+      end
       @results = {}
     end
 
@@ -47,7 +51,7 @@ module Undercover
     end
 
     # TODO: this is experimental and might be incorrect!
-    # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+    # rubocop:disable Metrics/AbcSize
     def build_warnings
       flagged_results = Set.new
 
@@ -70,7 +74,7 @@ module Undercover
       end
       flagged_results
     end
-    # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+    # rubocop:enable Metrics/AbcSize
 
     def all_results
       results.values.flatten
