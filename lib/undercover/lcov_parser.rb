@@ -41,6 +41,8 @@ module Undercover
         line_no = $~[1]
         covered = $~[2]
         source_files[@current_filename] << [line_no.to_i, covered.to_i]
+      when /^BRF:(\d+)/, /^BRH:(\d+)/, /^BRDA:(\d+),(\d+),(\d+),(\-|\d+)/
+        # ignored
       when /^end_of_record$/, /^$/
         @current_filename = nil
       else
